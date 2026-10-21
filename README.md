@@ -52,7 +52,7 @@ All settings are saved to `localStorage` under the key `hifi_settings`.
 
 | Setting | Options | Default |
 |---|---|---|
-| API Base URL | Any compatible endpoint | `https://igameten10-hifi-api.hf.space` |
+| API Base URL | Any compatible endpoint | `Api based on https://github.com/binimum/hifi-api` |
 | Quality | Hi-Res, Lossless, High, Low, Atmos | `LOSSLESS` |
 | Queue Layout | Side panel, Slide-out, Disabled | `Side panel` |
 | Queue Side | Left, Right | `Left` |
