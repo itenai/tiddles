@@ -4,43 +4,43 @@ from contextlib import asynccontextmanager
 
 from providers.api import app
 
-# Hugging Face ZeroGPU detects decorated functions in the entry module.
-try:
-    import spaces
+# ZeroGPU is Hugging Face-only. Disable it by default; opt in via env var.
+ZEROGPU_ENABLED = os.getenv("FID_ENABLE_ZEROGPU", "0") == "1"
 
-    @spaces.GPU(duration=5)
+if ZEROGPU_ENABLED:
+    try:
+        import spaces
+
+        @spaces.GPU(duration=5)
+        def _zerogpu_startup_check():
+            return True
+    except ImportError:
+        ZEROGPU_ENABLED = False
+
+if not ZEROGPU_ENABLED:
     def _zerogpu_startup_check():
-        """Executed at application startup to register/check ZeroGPU."""
         return True
 
-    ZEROGPU_AVAILABLE = True
-except ImportError:
-    ZEROGPU_AVAILABLE = False
-
-    class spaces:
-        @staticmethod
-        def GPU(func=None, duration=None):
-            if func is None:
-                return lambda wrapped: wrapped
-            return func
-
-    def _zerogpu_startup_check():
-        """Local fallback when the Hugging Face spaces package is unavailable."""
-        return True
-
-
-# Preserve the provider API's existing lifespan and run the ZeroGPU check
-# before its normal startup initialization.
 _original_lifespan_context = app.router.lifespan_context
 
 @asynccontextmanager
-async def _zerogpu_lifespan(application):
-    _zerogpu_startup_check()
+async def _lifespan(application):
+    print("LIFESPAN: begin", flush=True)
+    if ZEROGPU_ENABLED:
+        import asyncio
+        try:
+            await asyncio.wait_for(
+                asyncio.to_thread(_zerogpu_startup_check), timeout=10
+            )
+        except asyncio.TimeoutError:
+            print("LIFESPAN: zerogpu TIMEOUT, continuing", flush=True)
+    print("LIFESPAN: entering provider lifespan", flush=True)
     async with _original_lifespan_context(application):
+        print("LIFESPAN: provider startup complete", flush=True)
         yield
+    print("LIFESPAN: exit", flush=True)
 
-app.router.lifespan_context = _zerogpu_lifespan
-
+app.router.lifespan_context = _lifespan
 
 if __name__ == "__main__":
     import uvicorn
