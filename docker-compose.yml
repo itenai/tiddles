@@ -1,0 +1,25 @@
+services:
+  api:
+    build: .
+    ports:
+      - "7860:7860"
+    environment:
+      PORT: 7860
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+    depends_on:
+      - libretranslate
+    restart: unless-stopped
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    environment:
+      LT_LOAD_ONLY: en,ro,es,fr,de,it,pt,ru,ja,ko,tr,uk
+      LT_UPDATE_MODELS: "true"
+    ports:
+      - "5000:5000"
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local
+    restart: unless-stopped
+
+volumes:
+  libretranslate_models:

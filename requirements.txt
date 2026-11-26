@@ -1,0 +1,13 @@
+fastapi>=0.110
+uvicorn>=0.27
+httpx[http2]>=0.27
+python-dotenv>=1.0
+requests>=2.31
+pycryptodome>=3.20
+mutagen>=1.47
+deezer-py
+pywidevine
+pycenc
+
+# Self-hosted, local-only translation engine (Argos models managed by LibreTranslate)
+libretranslate>=1.6.2
